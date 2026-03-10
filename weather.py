@@ -3,6 +3,7 @@ import urllib.request
 import urllib.parse
 import json
 from dataclasses import dataclass
+from typing import Optional
 import threading
 import sublime
 import sublime_plugin
@@ -15,7 +16,7 @@ SETTINGS_CALLBACK_TAG = "weather_settings_callback"
 providers = {}
 
 
-@dataclass
+@dataclass(frozen=True)
 class Formats:
     timestamp: str
     header: str
@@ -34,13 +35,13 @@ class Formats:
             raise ValueError("Error format cannot contain \"\\n\"")
 
 
-@dataclass
+@dataclass(frozen=True)
 class Weather:
     temp: float
     weather: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class APIConfig:
     units: str
     lang: str
@@ -51,32 +52,26 @@ class APIConfig:
             raise ValueError("Units must be one of \"metric\", \"imperial\"")
 
 
+@dataclass(frozen=True)
 class Place:
-    def __init__(self, name, query=None, city_id=None, lat=None, lon=None):
-        self.name = name
-        self.query = None
-        self.city_id = None
-        self.lat, self.lon = None, None
+    name: str
+    query: Optional[str] = None
+    city_id: Optional[int] = None
+    lat: Optional[float] = None
+    lon: Optional[float] = None
 
+    def __post_init__(self):
         modes = [
-            query is not None,
-            city_id is not None,
-            lat is not None or lon is not None
+            self.query is not None,
+            self.city_id is not None,
+            self.lat is not None or self.lon is not None
         ]
 
         if sum(modes) != 1:
             raise ValueError("Place must specify exactly one of query, city_id or coordinates")
 
-        if modes[0]:
-            self.query = str(query)
-        elif modes[1]:
-            self.city_id = city_id
-        elif modes[2]:
-            if lat is None or lon is None:
-                raise ValueError("Both lat and lon required")
-
-            self.lat = float(lat)
-            self.lon = float(lon)
+        if modes[2] and (self.lat is None or self.lon is None):
+            raise ValueError("Both lat and lon required")
 
 
 def plugin_loaded():
