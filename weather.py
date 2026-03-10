@@ -39,11 +39,17 @@ class Weather:
     temp: float
     weather: str
 
+
 @dataclass
 class APIConfig:
     units: str
     lang: str
     key: str
+
+    def __post_init__(self):
+        if self.units not in ("metric", "imperial"):
+            raise ValueError("Units must be one of \"metric\", \"imperial\"")
+
 
 class Place:
     def __init__(self, name, query=None, city_id=None, lat=None, lon=None):
@@ -76,7 +82,6 @@ class Place:
 def plugin_loaded():
     global settings
     settings = sublime.load_settings("Weather.sublime-settings")
-    print(settings.to_dict())
     settings.add_on_change(SETTINGS_CALLBACK_TAG, unpack_settings)
     unpack_settings()
 
@@ -237,10 +242,8 @@ def fetch_weather_openweather(place, config):
         params['q'] = place.query
     elif place.city_id is not None:
         params['id'] = place.city_id
-    elif place.lat is not None and place.lon is not None:
-        params['lat'] = place.lat; params['lon'] = place.lon
     else:
-        raise RuntimeError("Invalid Place object")
+        params['lat'] = place.lat; params['lon'] = place.lon
 
     query = urllib.parse.urlencode(params)
     url = base + "?" + query
@@ -251,19 +254,6 @@ def fetch_weather_openweather(place, config):
     return Weather(temp=temp, weather=weath)
 
 
-def fetch_weather_wttr(city, config):
-
-    base = "https://wttr.in"
-    params = {"format": "j2"}
-    # tmp = city.replace(" ", "+")
-    url = f"https://wttr.in/{tmp}?format=j2"
-    with urllib.request.urlopen(url, timeout=10) as response:
-        data = json.loads(response.read().decode())
-    temp = data["current_condition"][0]["temp_C"]
-    weath = data["current_condition"][0]["weatherDesc"][0]["value"]
-    return Weather(temp=float(temp), weather=weath)
-
-
 @register_provider("wttr")
 def fetch_weather_wttr(place: Place, config: APIConfig) -> Weather:
     base = "https://wttr.in"
@@ -272,30 +262,29 @@ def fetch_weather_wttr(place: Place, config: APIConfig) -> Weather:
         location = place.query.replace(" ", "+")
     elif place.city_id is not None:
         location = str(place.city_id)
-    elif place.lat is not None and place.lon is not None:
-        location = f"{place.lat},{place.lon}"
     else:
-        raise ValueError("Invalid place configuration")
+        location = f"{place.lat},{place.lon}"
 
-    params = {"format": "j1", "lang": config.lang}
+    long_params = {"format": "j2", "lang": config.lang}
+
+    short_params = ""
 
     if config.units == "metric":
-        params["m"] = ""
-    elif config.units == "imperial":
-        params["u"] = ""
+        short_params += "m"
+    else:
+        short_params += "u"
 
-    url = f"{base}/{location}?{urllib.parse.urlencode(params)}"
-    print(url)
+    url = f"{base}/{location}?{short_params}&{urllib.parse.urlencode(long_params)}"
+
     with urllib.request.urlopen(url, timeout=10) as response:
         data = json.loads(response.read().decode())
 
-
     cond = data["current_condition"][0]
 
-    if config.units == "imperial":
-        temp = float(cond["temp_F"])
-    elif config.units =="metric":
+    if config.units == "metric":
         temp = float(cond["temp_C"])
+    else:
+        temp = float(cond["temp_F"])
 
     weather = cond["weatherDesc"][0]["value"]
 
