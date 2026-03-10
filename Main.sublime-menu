@@ -1,0 +1,37 @@
+[
+  {
+    "id": "preferences",
+    "children": [
+      {
+        "caption": "Package Settings",
+        "mnemonic": "P",
+        "id": "package-settings",
+        "children": [
+          {
+            "caption": "Weather",
+            "id": "weather-settings",
+            "children": [
+              {
+                "caption": "Settings",
+                "command": "edit_settings",
+                "args": {
+                  "base_file": "${packages}/Weather/Weather.sublime-settings",
+                  "default": "// Settings in here override those in \"Weather/Weather.sublime-settings\"\n{\n\t$0\n}\n"
+                }
+              },
+              // {
+              //   "caption": "Key Bindings",
+              //   "command": "edit_settings",
+              //   "args": {
+              //     "base_file": "${packages}/Weather/Default.sublime-keymap",
+              //     "user_file": "${packages}/User/Default (${platform}).sublime-keymap", // Is this needed?
+              //     "default": "[\n\t$0\n]\n",
+              //   }
+              // },
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

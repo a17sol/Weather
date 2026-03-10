@@ -1,0 +1,59 @@
+{
+	// List of places to show. Supports four kinds of entries:
+	//   1. {"name": "New York", "query": "New York,US"}
+	//   name - the name to show on your screen
+	//   query - any query string supported by selected provider
+	//   2. {"name": "New York", "id": 5128581}
+	//   name - the name to show on your screen
+	//   city_id - provider-specific id of a city
+	//   2. "New York"
+	//   The string will be used as display name and query name both
+	//   3. {"name": "New York", "lon": -74.005966, "lat": 40.714272}
+	//   name - the name to show on your screen
+	//   lat, lon - latitude and longitude to query
+	"places": [
+		"Moscow",
+		{"name": "Beersheba", "query": "Beersheba, Israel"},
+		{"name": "Groningen", "city_id": 2755251},
+		{"name": "North Pole", "lat": 90, "lon": 0},
+	],
+
+	// One of: "openweather", "wttr"
+	"provider": "openweather",
+
+	// Your API key for the specified provider
+	"key": "",
+
+	// The language code to pass to the provider
+	"lang": "en",
+
+	// One of: "metric", "imperial"
+	"units": "metric",
+
+	// Formatting
+
+	// All the formatting is performed with python str.format method,
+	// using the strings specified below.
+
+	// The format of the page header.
+	// May use predefined variables: timestamp, separator.
+	"header_f": "{timestamp}\n{separator}",
+
+	// The format of the timestamp to use in the header.
+	// Uses standard datetime.strftime syntax. Cannot contain "\n".
+	"timestamp_f": "%Y-%m-%d %H:%M:%S",
+
+	// The string to show while performing a request.
+	// May use predefined variables: name, max_name_len. Cannot contain "\n".
+	"loading_f": "{name:{max_name_len}}  Loading...",
+
+	// The format used to display weather data.
+	// May use predefined variables: name, max_name_len, weather. Cannot contain "\n".
+	// weather object contains the following fields: temp, weather
+	"entry_f": "{name:{max_name_len}}  {weather.temp: 5.1f}°С  {weather.weather}",
+
+	// The format used to show errors.
+	// May use predefined variables: name, max_name_len, error. Cannot contain "\n".
+	"error_f": "{name:{max_name_len}}   {error}"
+
+}
