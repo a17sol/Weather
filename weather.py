@@ -1,7 +1,4 @@
 import datetime
-import urllib.request
-import urllib.parse
-import json
 import threading
 import sublime
 import sublime_plugin
@@ -12,14 +9,13 @@ VIEW_KEY = "weather_plugin_tab"
 SETTINGS_CALLBACK_TAG = "weather_settings_callback"
 
 
-providers = {}
-
-
 def plugin_loaded():
     global settings
+    global providers
     settings = sublime.load_settings("Weather.sublime-settings")
     settings.add_on_change(SETTINGS_CALLBACK_TAG, unpack_settings)
     unpack_settings()
+    from .registry import providers
 
 def plugin_unloaded():
     global settings
@@ -44,7 +40,7 @@ def unpack_places():
         elif isinstance(item, dict):
             places.append(
                 Place(
-                    name=item.get("name"),
+                    name=str(item.get("name")),
                     query=item.get("query"),
                     city_id=item.get("city_id"),
                     lat=item.get("lat"),
@@ -154,73 +150,3 @@ class preserve_readonly:
 
 def fetch_weather(place):
     return providers[provider](place, api_config)
-
-
-def register_provider(name):
-    def decorator(func):
-        providers[name] = func
-        return func
-    return decorator
-
-
-@register_provider("test")
-def fetch_weather_test(place, config):
-    return Weather(temp=12.3, weather="Test")
-
-
-@register_provider("openweather")
-def fetch_weather_openweather(place, config):
-    base = "http://api.openweathermap.org/data/2.5/weather"
-
-    params = {'APPID': config.key, 'units': config.units, 'lang': config.lang}
-    if place.query is not None:
-        params['q'] = place.query
-    elif place.city_id is not None:
-        params['id'] = place.city_id
-    else:
-        params['lat'] = place.lat; params['lon'] = place.lon
-
-    query = urllib.parse.urlencode(params)
-    url = base + "?" + query
-    with urllib.request.urlopen(url, timeout=10) as response:
-        data = json.loads(response.read().decode())
-
-    temp, weath = data["main"]["temp"], data["weather"][0]["description"]
-    return Weather(temp=temp, weather=weath)
-
-
-@register_provider("wttr")
-def fetch_weather_wttr(place: Place, config: APIConfig) -> Weather:
-    base = "https://wttr.in"
-
-    if place.query is not None:
-        location = place.query.replace(" ", "+")
-    elif place.city_id is not None:
-        location = str(place.city_id)
-    else:
-        location = f"{place.lat},{place.lon}"
-
-    long_params = {"format": "j2", "lang": config.lang}
-
-    short_params = ""
-
-    if config.units == "metric":
-        short_params += "m"
-    else:
-        short_params += "u"
-
-    url = f"{base}/{location}?{short_params}&{urllib.parse.urlencode(long_params)}"
-
-    with urllib.request.urlopen(url, timeout=10) as response:
-        data = json.loads(response.read().decode())
-
-    cond = data["current_condition"][0]
-
-    if config.units == "metric":
-        temp = float(cond["temp_C"])
-    else:
-        temp = float(cond["temp_F"])
-
-    weather = cond["weatherDesc"][0]["value"]
-
-    return Weather(temp=temp, weather=weather)
