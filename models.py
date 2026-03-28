@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Callable, Optional, Tuple
 
 
 @dataclass(frozen=True)
@@ -58,3 +58,19 @@ class Place:
 class Weather:
     temp: float
     weather: str
+
+
+Provider = Callable[[Place, APIConfig], Weather]
+
+
+@dataclass(frozen=True)
+class Config:
+    provider: Provider
+    api: APIConfig
+    places: Tuple[Place]
+    formats: Formats
+    max_name_len: int = 0
+
+    def __post_init__(self):
+        max_len = max(len(place.name) for place in self.places)
+        object.__setattr__(self, "max_name_len", max_len)

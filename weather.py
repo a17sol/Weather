@@ -2,7 +2,7 @@ import datetime
 import threading
 import sublime
 import sublime_plugin
-from .models import Formats, APIConfig, Place, Weather
+from .models import Formats, APIConfig, Place, Config, Weather
 
 
 VIEW_KEY = "weather_plugin_tab"
@@ -11,65 +11,61 @@ SETTINGS_CALLBACK_TAG = "weather_settings_callback"
 
 def plugin_loaded():
     global settings
-    global providers
     settings = sublime.load_settings("Weather.sublime-settings")
     settings.add_on_change(SETTINGS_CALLBACK_TAG, unpack_settings)
     unpack_settings()
-    from .registry import providers
 
 def plugin_unloaded():
     global settings
     settings.clear_on_change(SETTINGS_CALLBACK_TAG)
 
 def unpack_settings():
+    global config
     print("unpacking")
-    unpack_places()
-    unpack_api_config()
-    unpack_provider()
-    unpack_formats()
 
-def unpack_places():
-    global places
-    global max_name_len
-
-    places = []
-    raw = settings.get("places", [])
-    for item in raw:
-        if isinstance(item, str):
-            places.append(Place(name=item, query=item))
-        elif isinstance(item, dict):
-            places.append(
-                Place(
-                    name=str(item.get("name")),
-                    query=item.get("query"),
-                    city_id=item.get("city_id"),
-                    lat=item.get("lat"),
-                    lon=item.get("lon"),
+    def unpack_places():
+        places = []
+        raw = settings.get("places", [])
+        for item in raw:
+            if isinstance(item, str):
+                places.append(Place(name=item, query=item))
+            elif isinstance(item, dict):
+                places.append(
+                    Place(
+                        name=str(item.get("name")),
+                        query=item.get("query"),
+                        city_id=item.get("city_id"),
+                        lat=item.get("lat"),
+                        lon=item.get("lon"),
+                    )
                 )
-            )
+        return tuple(places)
 
-    max_name_len = max(len(place.name) for place in places)
+    def unpack_api_config():
+        return APIConfig(
+            units=settings["units"],
+            lang=settings["lang"],
+            key=settings["key"]
+        )
 
-def unpack_api_config():
-    global api_config
-    api_config = APIConfig(
-        units=settings["units"],
-        lang=settings["lang"],
-        key=settings["key"]
-    )
+    def unpack_provider():
+        from .registry import providers
+        return providers[settings["provider"]]
 
-def unpack_provider():
-    global provider
-    provider = settings["provider"]
+    def unpack_formats():
+        return Formats(
+            timestamp=settings["timestamp_f"],
+            header=settings["header_f"],
+            loading=settings["loading_f"],
+            entry=settings["entry_f"],
+            error=settings["error_f"]
+        )
 
-def unpack_formats():
-    global formats
-    formats = Formats(
-        timestamp=settings["timestamp_f"],
-        header=settings["header_f"],
-        loading=settings["loading_f"],
-        entry=settings["entry_f"],
-        error=settings["error_f"]
+    config = Config(
+        provider=unpack_provider(),
+        api=unpack_api_config(),
+        places=unpack_places(),
+        formats=unpack_formats()
     )
 
 
@@ -77,22 +73,26 @@ class WeatherCommand(sublime_plugin.WindowCommand):
     def run(self):
         view = self.find_or_create_view()
         view.run_command("weather_render_loading_page")
-        for i in range(len(places)):
+        for i in range(len(config.places)):
             threading.Thread(target=self.process_place, args=(view, i), daemon=True).start()
         self.window.focus_view(view)
 
     def process_place(self, view, i):
-        place = places[i]
+        place = config.places[i]
 
-        lf_in_header = formats.header.count("\n")
+        lf_in_header = config.formats.header.count("\n")
         line = i + lf_in_header + 1
 
         try:
             weather = fetch_weather(place)
-            new_entry = formats.entry.format(name=place.name, weather=weather, max_name_len=max_name_len)
+            new_entry = config.formats.entry.format(
+                name=place.name, weather=weather, max_name_len=config.max_name_len
+            )
 
         except BaseException as e:
-            new_entry = formats.error.format(name=place.name, error=str(e), max_name_len=max_name_len)
+            new_entry = config.formats.error.format(
+                name=place.name, error=str(e), max_name_len=config.max_name_len
+            )
 
         sublime.set_timeout(
             lambda: view.run_command("weather_replace_string", {"number": line, "text": new_entry})
@@ -113,12 +113,14 @@ class WeatherCommand(sublime_plugin.WindowCommand):
 
 class WeatherRenderLoadingPageCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        timestamp = datetime.datetime.now().strftime(formats.timestamp)
+        timestamp = datetime.datetime.now().strftime(config.formats.timestamp)
         separator = '—'*len(timestamp)
-        page = formats.header.format(timestamp=timestamp, separator=separator)
+        page = config.formats.header.format(timestamp=timestamp, separator=separator)
 
-        for place in places:
-            page = page + "\n" + formats.loading.format(name=place.name, max_name_len=max_name_len)
+        for place in config.places:
+            page = page + "\n" + config.formats.loading.format(
+                name=place.name, max_name_len=config.max_name_len
+            )
 
         with preserve_readonly(self.view):
             self.view.sel().clear()
@@ -149,4 +151,4 @@ class preserve_readonly:
 
 
 def fetch_weather(place):
-    return providers[provider](place, api_config)
+    return config.provider(place, config.api)
