@@ -46,7 +46,7 @@ def fetch_weather_wttr(place: Place, config: APIConfig) -> Weather:
     elif place.city_id is not None:
         location = str(place.city_id)
     else:
-        location = f"{place.lat},{place.lon}"
+        location = f"{place.lat:.4f},{place.lon:.4f}"
 
     long_params = {"format": "j2", "lang": config.lang}
 
@@ -62,7 +62,7 @@ def fetch_weather_wttr(place: Place, config: APIConfig) -> Weather:
     with urllib.request.urlopen(url, timeout=10) as response:
         data = json.loads(response.read().decode())
 
-    cond = data["current_condition"][0]
+    cond = data['data']["current_condition"][0]
 
     if config.units == "metric":
         temp = float(cond["temp_C"])
