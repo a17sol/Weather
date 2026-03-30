@@ -17,7 +17,6 @@ def fetch_weather_openweather(place: Place, config: APIConfig) -> Weather:
 
     params: dict[str, object] = {
         'APPID': config.key,
-        'units': config.units,
         'lang': config.lang
     }
 
@@ -50,12 +49,7 @@ def fetch_weather_wttr(place: Place, config: APIConfig) -> Weather:
 
     long_params = {"format": "j2", "lang": config.lang}
 
-    short_params = ""
-
-    if config.units == "metric":
-        short_params += "m"
-    else:
-        short_params += "u"
+    short_params = "M"
 
     url = f"{base}/{location}?{short_params}&{urllib.parse.urlencode(long_params)}"
 
@@ -64,10 +58,7 @@ def fetch_weather_wttr(place: Place, config: APIConfig) -> Weather:
 
     cond = data['data']["current_condition"][0]
 
-    if config.units == "metric":
-        temp = float(cond["temp_C"])
-    else:
-        temp = float(cond["temp_F"])
+    temp = float(cond["temp_C"]) + 273.15
 
     weather = cond["weatherDesc"][0]["value"]
 

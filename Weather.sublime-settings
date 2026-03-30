@@ -27,8 +27,8 @@
 	// The language code to pass to the provider
 	"lang": "en",
 
-	// One of: "metric", "imperial"
-	"units": "metric",
+	// One of: "C", "F"
+	"temp_u": "C",
 
 	// Formatting
 

@@ -2,7 +2,7 @@ import datetime
 import threading
 import sublime
 import sublime_plugin
-from .models import Formats, APIConfig, Place, Config, Weather
+from .models import Formats, APIConfig, Place, Config, Units, Weather
 
 
 VIEW_KEY = "weather_plugin_tab"
@@ -43,7 +43,6 @@ def unpack_settings():
 
     def unpack_api_config():
         return APIConfig(
-            units=settings["units"],
             lang=settings["lang"],
             key=settings["key"]
         )
@@ -61,10 +60,14 @@ def unpack_settings():
             error=settings["error_f"]
         )
 
+    def unpack_units():
+        return Units(settings["temp_u"])
+
     config = Config(
         provider=unpack_provider(),
         api=unpack_api_config(),
         places=unpack_places(),
+        units=unpack_units(),
         formats=unpack_formats()
     )
 
@@ -84,7 +87,7 @@ class WeatherCommand(sublime_plugin.WindowCommand):
         line = i + lf_in_header + 1
 
         try:
-            weather = fetch_weather(place)
+            weather = fetch_weather(place).convert(config.units)
             new_entry = config.formats.entry.format(
                 name=place.name, weather=weather, max_name_len=config.max_name_len
             )

@@ -22,14 +22,19 @@ class Formats:
 
 
 @dataclass(frozen=True)
-class APIConfig:
-    units: str
-    lang: str
-    key: str
+class Units:
+    temp: str
 
     def __post_init__(self):
-        if self.units not in ("metric", "imperial"):
-            raise ValueError("Units must be one of \"metric\", \"imperial\"")
+        allowed_temp = ("C", "F")
+        if self.temp not in allowed_temp:
+            raise ValueError(f"Temperature units must be one of {allowed_temp}.")
+
+
+@dataclass(frozen=True)
+class APIConfig:
+    lang: str
+    key: str
 
 
 @dataclass(frozen=True)
@@ -59,6 +64,12 @@ class Weather:
     temp: float
     weather: str
 
+    def convert(self, units: Units):
+        if units.temp == "F": temp = 1.8 * self.temp - 459.67
+        else:                 temp = self.temp - 273.15
+
+        return Weather(temp, self.weather)
+
 
 Provider = Callable[[Place, APIConfig], Weather]
 
@@ -68,6 +79,7 @@ class Config:
     provider: Provider
     api: APIConfig
     places: Tuple[Place]
+    units: Units
     formats: Formats
     max_name_len: int = 0
 
