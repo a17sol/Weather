@@ -61,7 +61,11 @@ def unpack_settings():
         )
 
     def unpack_units():
-        return Units(settings["temp_u"])
+        return Units(
+            temp=settings["temp_u"],
+            speed=settings["speed_u"],
+            pressure=settings["pressure_u"]
+        )
 
     config = Config(
         provider=unpack_provider(),

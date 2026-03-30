@@ -24,11 +24,20 @@ class Formats:
 @dataclass(frozen=True)
 class Units:
     temp: str
+    speed: str
+    pressure: str
 
     def __post_init__(self):
         allowed_temp = ("C", "F")
+        allowed_speed = ("m/s", "km/h", "mph", "knots")
+        allowed_pressure = ("hPa", "mmHg", "inHg")
+
         if self.temp not in allowed_temp:
             raise ValueError(f"Temperature units must be one of {allowed_temp}.")
+        if self.speed not in allowed_speed:
+            raise ValueError(f"Speed units must be one of {allowed_speed}.")
+        if self.pressure not in allowed_pressure:
+            raise ValueError(f"Pressure units must be one of {allowed_pressure}.")
 
 
 @dataclass(frozen=True)
@@ -62,13 +71,24 @@ class Place:
 @dataclass(frozen=True)
 class Weather:
     temp: float
+    wind_speed: float
+    pressure: float
     weather: str
 
     def convert(self, units: Units):
         if units.temp == "F": temp = 1.8 * self.temp - 459.67
         else:                 temp = self.temp - 273.15
 
-        return Weather(temp, self.weather)
+        if   units.speed == "km/h":  wind_speed = 3.6 * self.wind_speed
+        elif units.speed == "mph":   wind_speed = 2.237 * self.wind_speed
+        elif units.speed == "knots": wind_speed = 1.944 * self.wind_speed
+        else:                        wind_speed = self.wind_speed
+
+        if   units.pressure == "inHg": pressure = self.pressure / 3386.4
+        elif units.pressure == "mmHg": pressure = self.pressure / 133.32
+        else:                          pressure = self.pressure / 100
+
+        return Weather(temp, wind_speed, pressure, self.weather)
 
 
 Provider = Callable[[Place, APIConfig], Weather]
