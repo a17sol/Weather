@@ -8,7 +8,7 @@ from .registry import register_provider
 
 @register_provider("test")
 def fetch_weather_test(place: Place, config: APIConfig) -> Weather:
-    return Weather(temp=280, wind_speed=1, pressure=100000, weather="Test")
+    return Weather(temp=280, humidity=50, wind_speed=1, pressure=100000, weather="Test")
 
 
 @register_provider("openweather")
@@ -33,10 +33,11 @@ def fetch_weather_openweather(place: Place, config: APIConfig) -> Weather:
         data = json.loads(response.read().decode())
 
     temp = data["main"]["temp"]
+    hum = data["main"]["humidity"]
     wind_sp = data["wind"]["speed"]
     press = data["main"]["pressure"] * 100
     weath = data["weather"][0]["description"]
-    return Weather(temp=temp, wind_speed=wind_sp, pressure=press, weather=weath)
+    return Weather(temp=temp, humidity=hum, wind_speed=wind_sp, pressure=press, weather=weath)
 
 
 @register_provider("wttr")
@@ -62,8 +63,9 @@ def fetch_weather_wttr(place: Place, config: APIConfig) -> Weather:
     cond = data['data']["current_condition"][0]
 
     temp = float(cond["temp_C"]) + 273.15
+    hum = float(cond["humidity"])
     wind_sp = float(cond["windspeedKmph"]) / 3.6
     press = int(cond["pressure"]) * 100
     weath = cond["weatherDesc"][0]["value"]
 
-    return Weather(temp=temp, wind_speed=wind_sp, pressure=press, weather=weath)
+    return Weather(temp=temp, humidity=hum, wind_speed=wind_sp, pressure=press, weather=weath)

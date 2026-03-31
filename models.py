@@ -71,6 +71,7 @@ class Place:
 @dataclass(frozen=True)
 class Weather:
     temp: float
+    humidity: float
     wind_speed: float
     pressure: float
     weather: str
@@ -88,7 +89,13 @@ class Weather:
         elif units.pressure == "mmHg": pressure = self.pressure / 133.32
         else:                          pressure = self.pressure / 100
 
-        return Weather(temp, wind_speed, pressure, self.weather)
+        return Weather(
+            temp=temp,
+            humidity=self.humidity,
+            wind_speed=wind_speed,
+            pressure=pressure,
+            weather=self.weather
+        )
 
 
 Provider = Callable[[Place, APIConfig], Weather]
