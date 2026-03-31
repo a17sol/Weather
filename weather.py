@@ -93,7 +93,7 @@ class WeatherCommand(sublime_plugin.WindowCommand):
         try:
             weather = fetch_weather(place).convert(config.units)
             new_entry = config.formats.entry.format(
-                name=place.name, weather=weather, max_name_len=config.max_name_len
+                name=place.name, max_name_len=config.max_name_len, **weather
             )
 
         except BaseException as e:

@@ -56,9 +56,9 @@
 	"loading_f": "{name:{max_name_len}}  Loading...",
 
 	// The format used to display weather data.
-	// May use predefined variables: name, max_name_len, weather. Cannot contain "\n".
-	// weather object contains the following fields: temp, weather
-	"entry_f": "{name:{max_name_len}}  {weather.temp: 5.1f}°С  {weather.weather}",
+	// Cannot contain "\n". May use predefined variables:
+	// name, max_name_len, temp, humidity, wind_speed, pressure, weather.
+	"entry_f": "{name:{max_name_len}}  {temp:5.1f}°С  {weather}",
 
 	// The format used to show errors.
 	// May use predefined variables: name, max_name_len, error. Cannot contain "\n".
