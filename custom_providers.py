@@ -5,6 +5,7 @@ You can add your own functions here that fetch weather data from any API
 or service you like. Each provider must be registered using the
 @register_provider decorator and must have the following signature:
 (place: Place, config: APIConfig) -> Weather.
+The Weather object must contain parameters in basic SI units.
 
 Example provider is shown below. Check also builtin_providers.py
 You can add multiple providers in this file if needed. Alternatively, you
@@ -21,9 +22,15 @@ Make sure each provider has a unique name.
 
 # @register_provider("my_weather_api")
 # def my_weather_provider(place: Place, config: APIConfig) -> Weather:
-#     API_URL = f"https://example.com/weather?city={place.query}"
-#
+#     API_URL = f"https://example.com/weather?query={place.query}"
+
 #     with urllib.request.urlopen(API_URL) as response:
 #         data = json.load(response)
-#
-#     return Weather(temp=data["temperature"], weather=data["description"])
+
+#     return Weather(
+#     	temp=data["temperature"],
+#     	humidity=data["humidity"],
+#     	wind_speed=data["wind_speed"],
+#     	pressure=data["pressure"],
+#     	weather=data["description"]
+#     )

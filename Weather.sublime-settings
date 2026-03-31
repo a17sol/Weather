@@ -3,23 +3,23 @@
 	//   1. {"name": "New York", "query": "New York,US"}
 	//   name - the name to show on your screen
 	//   query - any query string supported by selected provider
-	//   2. {"name": "New York", "id": 5128581}
+	//   2. {"name": "New York", "city_id": 5128581}
 	//   name - the name to show on your screen
 	//   city_id - provider-specific id of a city
-	//   2. "New York"
+	//   3. "New York"
 	//   The string will be used as display name and query name both
-	//   3. {"name": "New York", "lon": -74.005966, "lat": 40.714272}
+	//   4. {"name": "New York", "lon": -74.005966, "lat": 40.714272}
 	//   name - the name to show on your screen
 	//   lat, lon - latitude and longitude to query
 	"places": [
-		"Moscow",
+		"London",
 		{"name": "Beersheba", "query": "Beersheba, Israel"},
-		{"name": "Groningen", "city_id": 2755251},
+		{"name": "Springfield", "city_id": 62701},
 		{"name": "North Pole", "lat": 90, "lon": 0},
 	],
 
-	// One of: "openweather", "wttr" or any custom provider
-	"provider": "openweather",
+	// One of: "openweather", "wttr" or any custom provider (see custom_providers.py)
+	"provider": "wttr",
 
 	// Your API key for the specified provider
 	"key": "",
