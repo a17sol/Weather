@@ -5,7 +5,7 @@
 	//   query - any query string supported by selected provider
 	//   2. {"name": "New York", "city_id": 5128581}
 	//   name - the name to show on your screen
-	//   city_id - provider-specific id of a city
+	//   city_id - provider-specific id of a place
 	//   3. "New York"
 	//   The string will be used as display name and query name both
 	//   4. {"name": "New York", "lon": -74.005966, "lat": 40.714272}
@@ -35,7 +35,7 @@
 	// One of: "m/s", "km/h", "mph", "knots"
 	"speed_u": "m/s",
 	// One of: "hPa", "mmHg", "inHg"
-	"pressure_u": "mmHg",
+	"pressure_u": "hPa",
 
 
 	// Formatting
@@ -62,6 +62,13 @@
 
 	// The format used to show errors.
 	// May use predefined variables: name, max_name_len, error. Cannot contain "\n".
-	"error_f": "{name:{max_name_len}}   {error}"
+	"error_f": "{name:{max_name_len}}   {error}",
+
+	// Table view example
+	// "timestamp_f": "%Y-%m-%d %H:%M:%S",
+	// "header_f": "|{timestamp:^54}|\n|——————————————————————————————————————————————————————|\n|    Place     |  Temp.  | Hum. |       Weather        |\n|——————————————+—————————+——————+——————————————————————|",
+	// "entry_f": "| {name:{max_name_len}} | {temp:5.1f}°С | {humidity:3.0f}% | {weather:20} |",
+	// "loading_f": "| {name:{max_name_len}} | Loading...                            |",
+	// "error_f": "| {name:{max_name_len}} | {error}"
 
 }
