@@ -45,7 +45,7 @@ def fetch_weather_wttr(place: Place, config: APIConfig) -> Weather:
     base = "https://wttr.in"
 
     if place.query is not None:
-        location = place.query.replace(" ", "+")
+        location = urllib.parse.quote_plus(place.query)
     elif place.city_id is not None:
         location = str(place.city_id)
     else:
